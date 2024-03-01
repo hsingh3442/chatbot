@@ -3,27 +3,21 @@ import "react-chat-elements/dist/main.css"
 import {useRef, useState} from "react";
 import {ChatBotResponse} from "../../models/chatBotResponse";
 import {Input, MessageList} from "react-chat-elements";
+import ChatAnswer from "@/app/chatAnswer";
+import LoadingSpinner from "@/app/loadingSpinner";
 
 export default function Home() {
-  const [messageListArray, setMessageListArray] = useState<any>([])
-  const messageListReference = useRef()
+  const [messageList, setMessageList] = useState<any>([])
+  const messageListRef = useRef()
   const inputReference = useRef<HTMLInputElement>(null);
   const [processingQuestion, setProcessingQuestion] = useState<boolean>(false);
 
   const handleMessage = async () => {
     const question = inputReference.current!.value;
     if (question === "" || processingQuestion) return;
-    setProcessingQuestion(true)
 
-    const questionMsg = {
-      position: "right",
-      type: "text",
-      title: "Question",
-      text: inputReference.current!.value,
-      notch: false
-    }
-    setMessageListArray([...messageListArray, questionMsg])
-    inputReference.current!.value = ""
+    setProcessingQuestion(true)
+    addQuestionToMsgList(question)
 
     try {
       fetch('/api/chatBot', {
@@ -34,31 +28,51 @@ export default function Home() {
         body: JSON.stringify({question}),
       })
         .then(response => response.json() as Promise<ChatBotResponse>)
-        .then(value => {
-          const answerMsg = {
-            position: "left",
-            type: "text",
-            title: "Answer",
-            text: <>
-              <div className={"pb-5"}>{value.queryAnswer}</div>
-              <div>
-                {value.articles.map(value1 => (
-                  <div key={value1.link}><a className={"text-blue-500 hover:text-blue-800"} target={"_blank"}
-                                            href={value1.link}>{value1.name}</a></div>
-                ))}
-              </div>
-            </>,
-            notch: false
-          }
-          // @ts-ignore
-          setMessageListArray(currentMessages => [...currentMessages, answerMsg]);
+        .then(response => {
+          addAnswerToMsgList(response)
         })
         .catch(reason => {
+          console.log(reason)
         })
         .finally(() => setProcessingQuestion(false));
 
     } catch (e) {
+      console.log(e)
     }
+  }
+
+  function addQuestionToMsgList(question: string) {
+    const questionMsg = {
+      position: "right",
+      type: "text",
+      title: "Question",
+      text: question,
+      notch: false
+    }
+
+    const answerLoadingSpinner = {
+      id: "loadingSpinner",
+      position: "left",
+      type: "text",
+      text: <LoadingSpinner/>,
+      notch: false
+    }
+    setMessageList([...messageList, questionMsg, answerLoadingSpinner])
+    inputReference.current!.value = ""
+  }
+
+  function addAnswerToMsgList(chatBotResponse: ChatBotResponse) {
+
+    const answerMsg = {
+      position: "left",
+      type: "text",
+      title: "Answer",
+      text: <ChatAnswer articles={chatBotResponse.articles} queryAnswer={chatBotResponse.queryAnswer}/>,
+      notch: false
+    }
+
+    // @ts-ignore
+    setMessageList(currentMessages => [...currentMessages.filter(m => m.id !== "loadingSpinner"), answerMsg]);
   }
 
   return (
@@ -69,8 +83,8 @@ export default function Home() {
         </div>
         <div className="p-4">
           <MessageList
-            referance={messageListReference}
-            dataSource={messageListArray}
+            referance={messageListRef}
+            dataSource={messageList}
             lockable={false}
           />
 
@@ -90,8 +104,7 @@ export default function Home() {
             }}
             rightButtons={<button
               className={"bg-[#ff90e8] border-2 border-black hover:border-b-4 hover:border-r-4 text-black text-sm p-2 rounded"}
-              onClick={() => handleMessage()}>Send
-              Message</button>}
+              onClick={() => handleMessage()}>Send Message</button>}
           />
         </div>
       </div>
