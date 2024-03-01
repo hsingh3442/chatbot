@@ -3,8 +3,8 @@ import "react-chat-elements/dist/main.css"
 import {useRef, useState} from "react";
 import {ChatBotResponse} from "../../models/chatBotResponse";
 import {Input, MessageList} from "react-chat-elements";
-import ChatAnswer from "@/app/chatAnswer";
-import LoadingSpinner from "@/app/loadingSpinner";
+import ChatAnswer from "@/components/chatAnswer";
+import LoadingSpinner from "@/components/loadingSpinner";
 
 export default function Home() {
   const [messageList, setMessageList] = useState<any>([])
