@@ -92,7 +92,7 @@ export default function Home() {
         <div className="p-4">
           <Input
             className='rce-example-input border-2 border-slate-300 rounded-lg w-full'
-            placeholder='Write your question here.'
+            placeholder='Write your question here. Example - Does Gumroad handle the collection of sales tax in Australia?'
             defaultValue=''
             multiline={false}
             referance={inputReference}

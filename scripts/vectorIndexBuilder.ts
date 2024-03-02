@@ -11,13 +11,19 @@ import {OpenAIEmbeddings} from "@langchain/openai";
 
 dotenv.config({path: './.env.local'});
 
+/**
+ * This script is designed to build a vector index. It accomplishes this by retrieving documents,
+ * dividing them into smaller, manageable segments, and then processing these segments through OpenAI's
+ * Embedding API. The resulting embeddings are then saved in Pinecone for future retrieval and use.
+ */
 const run = async () => {
-  const openApiKey = process.env.OPENAI_API_KEY
+  const openAiApiKey = process.env.OPENAI_API_KEY
+  const openAiEmbeddingModelName = process.env.OPENAI_API_EMBEDDING_MODEL_NAME
   const pineConeApiKey = process.env.PINECONE_API_KEY ?? ""
   const pineConeIndexName = process.env.PINECONE_INDEX ?? ""
 
   const pineCone = new Pinecone({apiKey: pineConeApiKey});
-  const openApi = new OpenAIEmbeddings({openAIApiKey: openApiKey})
+  const openAi = new OpenAIEmbeddings({openAIApiKey: openAiApiKey, modelName: openAiEmbeddingModelName})
 
   const documents = await getDocuments()
   const textSplitter = new RecursiveCharacterTextSplitter({
@@ -29,11 +35,11 @@ const run = async () => {
 
   console.log(`Creating vector store`);
 
-  await PineconeStore.fromDocuments(docs, openApi, {
+  await PineconeStore.fromDocuments(docs, openAi, {
     pineconeIndex: pineConeIndex,
     maxConcurrency: 5,
     onFailedAttempt: error => {
-      console.log("Error creating vector store: ",error)
+      console.log("Error creating vector store: ", error)
     }
   });
 
@@ -41,6 +47,9 @@ const run = async () => {
   console.log(``);
 }
 
+/**
+ * Fetches and extracts text content from a predefined list of articles.
+ */
 async function getDocuments(): Promise<Document[]> {
   const documents: Document[] = [];
   const totalArticles = articles.length;
@@ -57,6 +66,10 @@ async function getDocuments(): Promise<Document[]> {
   return documents;
 }
 
+/**
+ * Scrapes and extracts clean text content from a single article's webpage.
+ * Uses axios for HTTP requests and cheerio for HTML content parsing.
+ */
 async function scrapeText(article: Article): Promise<Document> {
   try {
     const {data: htmlContent} = await axios.get(article.link);

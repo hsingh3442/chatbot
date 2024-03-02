@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+AI Chatbot application developed with Next.js, using articles from Gumroad's Help Center https://help.gumroad.com/
 
-## Getting Started
+## Application Overview
 
-First, run the development server:
+This app uses a mix of OpenAI's `GPT-3.5` and `text-embedding-3-large models`, Pinecone's vector database, and Langchain typescript library to create a simple AI chatbot. The bot is trained on a curated list of articles from Gumroad's Help Center, making it capable of providing specific, accurate answers to user queries related to Gumroad's services. The development process can be broken down into several key steps, starting from environment setup to launching the chatbot UI.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### Step 1: Environment Setup
+The initial step involves creating a .env.local file in the root directory of the project. This file stores the following environment variables
+
+```
+OPENAI_API_KEY=<Insert Key>
+OPENAI_API_EMBEDDING_MODEL_NAME=text-embedding-3-large
+OPENAI_API_MODEL_NAME=gpt-3.5-turbo
+PINECONE_API_KEY=<insert key>
+PINECONE_INDEX=<index name https://www.pinecone.io> 
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+These variables are crucial for interfacing with OpenAI's API and Pinecone's vector database.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Step 2: Building the Index
+A script `(npm run ingest-articles)` is provided to ingest articles from `./scripts/article.ts` file into a vector database. This process involves scraping the articles, converting them into vector representations using OpenAI's embeddings model, and then storing these vectors in Pinecone. This step is vital for enabling the chatbot to retrieve relevant information in response to user queries.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+### Step 3: Testing the Chatbot
 
-## Learn More
+`npm run chat-bot-test` This script simulates the chatbot's response to a predefined test query.
 
-To learn more about Next.js, take a look at the following resources:
+Step 4: Launching the UI
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Finally, `npm run dev` launches the Next.js application, a simple user-friendly chat interface built with `react-chat-elements` package. Users can interact with the chatbot through this interface, asking questions and receiving answers.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+## Source Code Overview
+The source code is organized into three primary components: training the AI, answering queries, and the chat UI.
 
-## Deploy on Vercel
+### Training the AI
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The process of training the AI model involves creating vector representations of articles from Gumroad's Help Center using the OpenAI `text-embedding-3-large` Model. These vectors are stored in a vector database managed by Pinecone, with the process facilitated by the Langchain typescript library, as detailed in `scripts/vectorIndexBuilder.ts`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+### Answering Queries
+
+Upon receiving a user's question, the application transforms this query into a vector using OpenAI's `text-embedding-3-large` model. It then identifies articles from Pinecone with the closest semantic similarity, combines these articles with the query, and utilizes OpenAI's `GPT-3.5` model to formulate a response. The implementation for this functionality is located in `scripts/chatBot.ts`.
+
+### Chat UI
+
+The chat interface is developed as a simple Next.js application, using the React Chat Elements package for its user interface components. It communicates with the backend via the Fetch API to present answers to user inquiries. The code for this component is available in `src/app/page.tsx`.
