@@ -42,3 +42,9 @@ Upon receiving a user's question, the application transforms this query into a v
 ### Chat UI
 
 The chat interface is developed as a simple Next.js application, using the React Chat Elements package for its user interface components. It communicates with the backend via the Fetch API to present answers to user inquiries. The code for this component is available in `src/app/page.tsx`.
+
+The chatbot isn't production ready yet. There are several potential improvements that could elevate it to be production-ready:
+- Broadening the dataset to include content from https://gumroad.nolt.io/  would allow the chatbot to check if a feature request has already been made.
+- Incorporating articles from https://gumroad.com/blog would enrich the chatbot’s knowledge base.
+- Adding functionality to display images from help articles, as visual aids are crucial for understanding certain instructions.
+- Enhancing the chatbot’s ability to maintain the context of previous interactions within a session for a more coherent conversation flow.
